@@ -101,7 +101,6 @@ etadata[:,0] -= np.average(etadata[:,0])
 arrL = []
 etathresh = 60.0e6 * W / 1e-9
 stress_drop = 0e6 * W / 1e-9
-print("%.2e" %etathresh)
 L = 0.0
 
 arrActivepatchesX = [] 
@@ -202,7 +201,6 @@ arrI = np.zeros_like(arrTime)
 
 for i,t in enumerate(arrTime):
     arrI[i] = np.argmin( np.abs(time*t_yr-t))
-    print(arrI[i])
 
 
 for i in arrI:

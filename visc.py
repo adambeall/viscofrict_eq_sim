@@ -26,7 +26,11 @@ def load():
     # ---- Key paramaters
     # Shear-zone thickness
     params['W'] = 100.0
-    params['visc_contrast'] = 100.0
+    # Shear-zone viscosity min/max in Pa s
+    params['visc_min'] = 1e18
+    params['visc_max'] = 1e20
+
+
     # seed for patch size and viscosity random generation 
     np.random.seed(3)  # model-set A
     #np.random.seed(5)  # model-set B
@@ -36,10 +40,13 @@ def load():
     # Model duration
     params['maxtime'] = 1000 * 3600 * 24 * 365.0    # model time in seconds
 
-    # options are log, powerlaw or bimodal
+    # options are log, powerlaw, bimodal or single
+    # single = single asperity
     params['visc_dist'] = 'log' 
 
 
+    # Patch width - only used for single asperity model
+    params['asp_width'] = 5e3 
 
 
     # Instantiate the QDYN class object
@@ -113,8 +120,8 @@ if __name__ == '__main__':
 
     # Generate random viscosities
 
-    eta_min = 18   # min. log(eta)
-    eta_max = eta_min + np.log10(params['visc_contrast'])   # max. log(eta)
+    eta_min = np.log10(params['visc_min'])
+    eta_max = np.log10(params['visc_max'])
 
 
     xrand = np.random.random(200)
@@ -128,25 +135,33 @@ if __name__ == '__main__':
         arrStressRand += 10.**eta_min
     elif params['visc_dist'] == 'powerlaw':
         arrStressRand = (eta_min**D + (eta_max**D - eta_min**D)*xrand)**(1./D)
-    else:
+    elif params['visc_dist'] != 'single':
         raise NameError('No viscosity distribution chosen')
 
 
     # map patches to fault x co-ordinates
-    arrWCumul = np.cumsum(arrW)
-
     arrX = np.linspace(0,params['L'],params['res'])
-    arrPert = np.zeros(len(arrX))
     arrMaterial = np.zeros(arrX.size)
 
-    pCount = 0
-    for i,xi in enumerate(arrX):
-        if xi > arrWCumul[pCount+1]:
-            pCount += 1
-        material = pCount % 2
-        arrMaterial[i] =  arrStressRand[pCount+1]
-            
-    arrW = arrW[:pCount]
+    if params['visc_dist'] == 'single':
+        x_l = 0.5 * (params['L'] - params['asp_width'])
+        x_r = 0.5 * (params['L'] + params['asp_width'])
+        for i,xi in enumerate(arrX):
+            if xi < x_l or xi>x_r:
+                arrMaterial[i] = 10. ** eta_min
+            else:
+                arrMaterial[i] = 10. ** eta_max
+
+    else:
+        arrWCumul = np.cumsum(arrW)
+
+        pCount = 0
+        for i,xi in enumerate(arrX):
+            if xi > arrWCumul[pCount+1]:
+                pCount += 1
+            material = pCount % 2
+            arrMaterial[i] =  arrStressRand[pCount+1]
+                
 
 
     # Set viscosity

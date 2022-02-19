@@ -6,6 +6,8 @@ by Adam Beall, Martijn van den Ende, Jean-Paul Ampuero and Ake Fagereng. These s
 The script 'visc.py' runs the earthquake cycle model, where the inputs can be varied to reproduce any of the heterogenous fault models in the study.
 Use 'plot.py' to colalte the synthetic earthquake catalogue and visualise the model output.
 
+The script 'visc.py' can also be used to run the single asperity test model, by setting 'visc_dist' to 'single'.
+
 
 Requirements:
 - QDYN (and associated requirements), with the viscosity branch:
